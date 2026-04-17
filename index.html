@@ -16,7 +16,6 @@ body {
   height: 100vh;
 }
 
-/* TOP BAR */
 #topbar {
   background: #1e1e1e;
   padding: 12px;
@@ -34,7 +33,6 @@ body {
   cursor: pointer;
 }
 
-/* STATUS */
 #dot {
   width: 10px;
   height: 10px;
@@ -42,14 +40,12 @@ body {
   background: gray;
 }
 
-/* GRID */
 #grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   grid-template-rows: repeat(2, 1fr);
 }
 
-/* COUNTERS */
 .counter {
   display: flex;
   flex-direction: column;
@@ -70,7 +66,6 @@ button {
   margin: 5px;
 }
 
-/* COLORS */
 .green { background:#4CAF50; }
 .red { background:#f44336; }
 .blue { background:#2196F3; }
@@ -82,17 +77,15 @@ button {
 
 <body>
 
-<!-- 🔊 SOUND -->
 <audio id="sound" src="click.mp3" preload="auto"></audio>
 
-<!-- TOP BAR -->
 <div id="topbar">
   <button id="refreshBtn">↻ aktualisieren</button>
   <div id="dot"></div>
   <span id="status">connecting...</span>
+  <span id="syncTime">sync: nie</span>
 </div>
 
-<!-- GRID -->
 <div id="grid">
 
 <div class="counter green" data-id="1">
@@ -153,41 +146,76 @@ const supabase = createClient(
   "sb_publishable_7E3Ai7_08sGkXhwhm85USw_Ikf5taX1"
 );
 
-/* 🔊 SOUND SYSTEM (DEBOUNCE 2s) */
+/* =========================
+   🔊 SOUND (FIXED DEBOUNCE)
+========================= */
 const audio = document.getElementById("sound");
-let soundUnlocked = false;
-let soundTimeout = null;
 
-function unlockSound() {
+let soundUnlocked = false;
+let lastEventTime = 0;
+let soundTimer = null;
+
+document.addEventListener("click", () => {
   if (soundUnlocked) return;
 
-  audio.play().then(() => {
-    audio.pause();
-    audio.currentTime = 0;
-    soundUnlocked = true;
-  }).catch(() => {});
-}
+  audio.play()
+    .then(() => {
+      audio.pause();
+      audio.currentTime = 0;
+      soundUnlocked = true;
+    })
+    .catch(() => {});
+}, { once: true });
 
 function triggerSound() {
   if (!soundUnlocked) return;
 
-  clearTimeout(soundTimeout);
+  lastEventTime = Date.now();
 
-  soundTimeout = setTimeout(() => {
-    audio.currentTime = 0;
-    audio.play().catch(() => {});
+  clearTimeout(soundTimer);
+
+  soundTimer = setTimeout(() => {
+    if (Date.now() - lastEventTime >= 2000) {
+      audio.currentTime = 0;
+      audio.play().catch(() => {});
+    }
   }, 2000);
 }
 
-document.addEventListener("click", unlockSound, { once: true });
-
-/* STATUS */
+/* =========================
+   STATUS
+========================= */
 function setStatus(ok) {
   document.getElementById("dot").style.background = ok ? "#4CAF50" : "gray";
   document.getElementById("status").innerText = ok ? "verbunden" : "connecting...";
 }
 
-/* CHANGE */
+/* =========================
+   SYNC TIME (sec/min/hour)
+========================= */
+let lastSync = null;
+
+function formatTime(ms) {
+  const sec = Math.floor(ms / 1000);
+  const min = Math.floor(sec / 60);
+  const hour = Math.floor(min / 60);
+
+  if (sec < 60) return `sync: vor ${sec}s`;
+  if (min < 60) return `sync: vor ${min}min`;
+  return `sync: vor ${hour}h`;
+}
+
+function updateSync() {
+  if (!lastSync) return;
+  document.getElementById("syncTime").innerText =
+    formatTime(Date.now() - lastSync);
+}
+
+setInterval(updateSync, 1000);
+
+/* =========================
+   CHANGE VALUE
+========================= */
 window.change = async (id, delta) => {
   const { data, error } = await supabase
     .from("groupecounter")
@@ -207,7 +235,9 @@ window.change = async (id, delta) => {
   if (!updateError) triggerSound();
 };
 
-/* LOAD */
+/* =========================
+   LOAD
+========================= */
 async function loadAll() {
   const { data } = await supabase
     .from("groupecounter")
@@ -219,14 +249,18 @@ async function loadAll() {
   });
 }
 
-/* REFRESH */
+/* =========================
+   REFRESH
+========================= */
 document.getElementById("refreshBtn").addEventListener("click", async (e) => {
   e.target.disabled = true;
   await loadAll();
   setTimeout(() => e.target.disabled = false, 2000);
 });
 
-/* REALTIME */
+/* =========================
+   REALTIME
+========================= */
 supabase
   .channel("multi")
   .on(
@@ -238,6 +272,7 @@ supabase
       const el = document.querySelector(`[data-id="${row.id}"] .value`);
       if (el) el.innerText = row.value;
 
+      lastSync = Date.now();
       triggerSound();
     }
   )
