@@ -66,6 +66,13 @@ button {
   margin: 5px;
 }
 
+/* disabled style */
+button:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+/* COLORS */
 .green { background:#4CAF50; }
 .red { background:#f44336; }
 .blue { background:#2196F3; }
@@ -147,7 +154,7 @@ const supabase = createClient(
 );
 
 /* =========================
-   🔊 SOUND (FIXED DEBOUNCE)
+   🔊 SOUND (2s debounce)
 ========================= */
 const audio = document.getElementById("sound");
 
@@ -191,7 +198,7 @@ function setStatus(ok) {
 }
 
 /* =========================
-   SYNC TIME (sec/min/hour)
+   SYNC TIME
 ========================= */
 let lastSync = null;
 
@@ -214,7 +221,7 @@ function updateSync() {
 setInterval(updateSync, 1000);
 
 /* =========================
-   CHANGE VALUE
+   CHANGE
 ========================= */
 window.change = async (id, delta) => {
   const { data, error } = await supabase
@@ -250,12 +257,18 @@ async function loadAll() {
 }
 
 /* =========================
-   REFRESH
+   REFRESH (5s LOCK)
 ========================= */
-document.getElementById("refreshBtn").addEventListener("click", async (e) => {
-  e.target.disabled = true;
+const refreshBtn = document.getElementById("refreshBtn");
+
+refreshBtn.addEventListener("click", async () => {
+  refreshBtn.disabled = true;
+
   await loadAll();
-  setTimeout(() => e.target.disabled = false, 2000);
+
+  setTimeout(() => {
+    refreshBtn.disabled = false;
+  }, 5000);
 });
 
 /* =========================
