@@ -25,7 +25,6 @@ body {
   align-items: center;
 }
 
-/* REFRESH BUTTON */
 #refreshBtn {
   padding: 10px 20px;
   border: none;
@@ -91,8 +90,6 @@ button {
   <button id="refreshBtn">↻ aktualisieren</button>
   <div id="dot"></div>
   <span id="status">connecting...</span>
-  <span id="syncTime">sync: nie</span>
-  <span id="changeTime">änderung: nie</span>
 </div>
 
 <!-- GRID -->
@@ -156,9 +153,10 @@ const supabase = createClient(
   "sb_publishable_7E3Ai7_08sGkXhwhm85USw_Ikf5taX1"
 );
 
-/* 🔊 SOUND FIX */
+/* 🔊 SOUND SYSTEM (DEBOUNCE 2s) */
 const audio = document.getElementById("sound");
 let soundUnlocked = false;
+let soundTimeout = null;
 
 function unlockSound() {
   if (soundUnlocked) return;
@@ -170,42 +168,24 @@ function unlockSound() {
   }).catch(() => {});
 }
 
-function playSound() {
+function triggerSound() {
   if (!soundUnlocked) return;
-  audio.currentTime = 0;
-  audio.play().catch(() => {});
+
+  clearTimeout(soundTimeout);
+
+  soundTimeout = setTimeout(() => {
+    audio.currentTime = 0;
+    audio.play().catch(() => {});
+  }, 2000);
 }
 
 document.addEventListener("click", unlockSound, { once: true });
 
-let lastChange = null;
-let lastSync = null;
-
 /* STATUS */
 function setStatus(ok) {
-  const dot = document.getElementById("dot");
-  const text = document.getElementById("status");
-
-  dot.style.background = ok ? "#4CAF50" : "gray";
-  text.innerText = ok ? "verbunden" : "connecting...";
+  document.getElementById("dot").style.background = ok ? "#4CAF50" : "gray";
+  document.getElementById("status").innerText = ok ? "verbunden" : "connecting...";
 }
-
-/* TIMES */
-function updateTimes() {
-  const now = Date.now();
-
-  if (lastSync) {
-    document.getElementById("syncTime").innerText =
-      `sync: vor ${Math.floor((now-lastSync)/1000)}s`;
-  }
-
-  if (lastChange) {
-    document.getElementById("changeTime").innerText =
-      `änderung: vor ${Math.floor((now-lastChange)/1000)}s`;
-  }
-}
-
-setInterval(updateTimes, 1000);
 
 /* CHANGE */
 window.change = async (id, delta) => {
@@ -221,13 +201,10 @@ window.change = async (id, delta) => {
 
   const { error: updateError } = await supabase
     .from("groupecounter")
-    .update({
-      value: newValue,
-      last_changed: new Date().toISOString()
-    })
+    .update({ value: newValue })
     .eq("id", id);
 
-  if (!updateError) playSound();
+  if (!updateError) triggerSound();
 };
 
 /* LOAD */
@@ -246,7 +223,7 @@ async function loadAll() {
 document.getElementById("refreshBtn").addEventListener("click", async (e) => {
   e.target.disabled = true;
   await loadAll();
-  setTimeout(() => e.target.disabled = false, 5000);
+  setTimeout(() => e.target.disabled = false, 2000);
 });
 
 /* REALTIME */
@@ -261,13 +238,7 @@ supabase
       const el = document.querySelector(`[data-id="${row.id}"] .value`);
       if (el) el.innerText = row.value;
 
-      lastSync = Date.now();
-
-      if (row.last_changed) {
-        lastChange = new Date(row.last_changed).getTime();
-      }
-
-      playSound();
+      triggerSound();
     }
   )
   .subscribe(status => setStatus(status === "SUBSCRIBED"));
