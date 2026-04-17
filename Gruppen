@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Multi Counter</title>
+
+<style>
+body {
+  margin: 0;
+  font-family: sans-serif;
+  background: #111;
+  color: white;
+  display: grid;
+  grid-template-rows: auto 1fr;
+  height: 100vh;
+}
+
+/* TOP BAR */
+#topbar {
+  background: #1e1e1e;
+  padding: 12px;
+  display: flex;
+  gap: 20px;
+  align-items: center;
+}
+
+/* REFRESH BUTTON */
+#refreshBtn {
+  padding: 10px 20px;
+  border: none;
+  border-radius: 10px;
+  background: #2196f3;
+  color: white;
+  cursor: pointer;
+}
+
+#refreshBtn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+/* STATUS */
+#dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: gray;
+}
+
+/* GRID */
+#grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  grid-template-rows: repeat(2, 1fr);
+}
+
+/* COUNTERS */
+.counter {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  font-size: 60px;
+  font-weight: bold;
+}
+
+.value { font-size: 80px; }
+
+button {
+  font-size: 25px;
+  padding: 8px 14px;
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+  margin: 5px;
+}
+
+/* COLORS */
+.green { background:#4CAF50; }
+.red { background:#f44336; }
+.blue { background:#2196F3; }
+.yellow { background:#FFEB3B; color:black; }
+.purple { background:#9C27B0; }
+.orange { background:#FF9800; }
+</style>
+</head>
+
+<body>
+
+<!-- TOP BAR -->
+<div id="topbar">
+  <button id="refreshBtn">↻ aktualisieren</button>
+
+  <div id="dot"></div>
+  <span id="status">connecting...</span>
+  <span id="syncTime">sync: nie</span>
+  <span id="changeTime">änderung: nie</span>
+</div>
+
+<!-- GRID -->
+<div id="grid">
+
+<div class="counter green" data-id="1">
+  <div class="value">0</div>
+  <div>
+    <button onclick="change(1,1)">+</button>
+    <button onclick="change(1,-1)">-</button>
+  </div>
+</div>
+
+<div class="counter red" data-id="2">
+  <div class="value">0</div>
+  <div>
+    <button onclick="change(2,1)">+</button>
+    <button onclick="change(2,-1)">-</button>
+  </div>
+</div>
+
+<div class="counter blue" data-id="3">
+  <div class="value">0</div>
+  <div>
+    <button onclick="change(3,1)">+</button>
+    <button onclick="change(3,-1)">-</button>
+  </div>
+</div>
+
+<div class="counter yellow" data-id="4">
+  <div class="value">0</div>
+  <div>
+    <button onclick="change(4,1)">+</button>
+    <button onclick="change(4,-1)">-</button>
+  </div>
+</div>
+
+<div class="counter purple" data-id="5">
+  <div class="value">0</div>
+  <div>
+    <button onclick="change(5,1)">+</button>
+    <button onclick="change(5,-1)">-</button>
+  </div>
+</div>
+
+<div class="counter orange" data-id="6">
+  <div class="value">0</div>
+  <div>
+    <button onclick="change(6,1)">+</button>
+    <button onclick="change(6,-1)">-</button>
+  </div>
+</div>
+
+</div>
+
+<script type="module">
+import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm";
+
+const supabase = createClient(
+  "https://ollmmbnptcpktgtltzzz.supabase.co",
+  "sb_publishable_7E3Ai7_08sGkXhwhm85USw_Ikf5taX1"
+);
+
+let lastChange = null;
+let lastSync = null;
+
+/* STATUS */
+function setStatus(ok) {
+  const dot = document.getElementById("dot");
+  const text = document.getElementById("status");
+
+  if (ok) {
+    dot.style.background = "#4CAF50";
+    text.innerText = "verbunden";
+  } else {
+    dot.style.background = "gray";
+    text.innerText = "connecting...";
+  }
+}
+
+/* TIMES */
+function updateTimes() {
+  const now = Date.now();
+
+  if (lastSync) {
+    document.getElementById("syncTime").innerText =
+      `sync: vor ${Math.floor((now-lastSync)/1000)}s`;
+  }
+
+  if (lastChange) {
+    document.getElementById("changeTime").innerText =
+      `änderung: vor ${Math.floor((now-lastChange)/1000)}s`;
+  }
+}
+
+setInterval(updateTimes, 1000);
+
+/* CHANGE */
+window.change = async (id, delta) => {
+  const { data, error } = await supabase
+    .from("groupecounter")   // 🔥 HIER GEÄNDERT
+    .select("value")
+    .eq("id", id)
+    .single();
+
+  if (error) return console.error(error);
+
+  const newValue = data.value + delta;
+
+  const { error: updateError } = await supabase
+    .from("groupecounter")   // 🔥 HIER GEÄNDERT
+    .update({
+      value: newValue,
+      last_changed: new Date().toISOString()
+    })
+    .eq("id", id);
+
+  if (updateError) console.error(updateError);
+};
+
+/* LOAD ALL */
+async function loadAll() {
+  const { data } = await supabase
+    .from("groupecounter")   // 🔥 HIER GEÄNDERT
+    .select("*");
+
+  data.forEach(row => {
+    const el = document.querySelector(`[data-id="${row.id}"] .value`);
+    if (el) el.innerText = row.value;
+  });
+}
+
+/* REFRESH BUTTON */
+document.getElementById("refreshBtn").addEventListener("click", async (e) => {
+  const btn = e.target;
+
+  btn.disabled = true;
+  await loadAll();
+
+  setTimeout(() => {
+    btn.disabled = false;
+  }, 5000);
+});
+
+/* REALTIME */
+supabase
+  .channel("multi")
+  .on(
+    "postgres_changes",
+    { event: "*", schema: "public", table: "groupecounter" }, // 🔥 HIER GEÄNDERT
+    (payload) => {
+      const row = payload.new;
+
+      const el = document.querySelector(
+        `[data-id="${row.id}"] .value`
+      );
+
+      if (el) el.innerText = row.value;
+
+      lastSync = Date.now();
+
+      if (row.last_changed) {
+        lastChange = new Date(row.last_changed).getTime();
+      }
+    }
+  )
+  .subscribe((status) => {
+    setStatus(status === "SUBSCRIBED");
+  });
+
+loadAll();
+</script>
+
+</body>
+</html>
