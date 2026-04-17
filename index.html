@@ -66,13 +66,11 @@ button {
   margin: 5px;
 }
 
-/* disabled style */
 button:disabled {
   opacity: 0.4;
   cursor: not-allowed;
 }
 
-/* COLORS */
 .green { background:#4CAF50; }
 .red { background:#f44336; }
 .blue { background:#2196F3; }
@@ -154,7 +152,7 @@ const supabase = createClient(
 );
 
 /* =========================
-   🔊 SOUND (2s debounce)
+   SOUND
 ========================= */
 const audio = document.getElementById("sound");
 
@@ -178,7 +176,6 @@ function triggerSound() {
   if (!soundUnlocked) return;
 
   lastEventTime = Date.now();
-
   clearTimeout(soundTimer);
 
   soundTimer = setTimeout(() => {
@@ -224,22 +221,20 @@ setInterval(updateSync, 1000);
    CHANGE
 ========================= */
 window.change = async (id, delta) => {
-  const { data, error } = await supabase
+  const { data } = await supabase
     .from("groupecounter")
     .select("value")
     .eq("id", id)
     .single();
 
-  if (error) return console.error(error);
-
   const newValue = data.value + delta;
 
-  const { error: updateError } = await supabase
+  const { error } = await supabase
     .from("groupecounter")
     .update({ value: newValue })
     .eq("id", id);
 
-  if (!updateError) triggerSound();
+  if (!error) triggerSound();
 };
 
 /* =========================
@@ -254,10 +249,13 @@ async function loadAll() {
     const el = document.querySelector(`[data-id="${row.id}"] .value`);
     if (el) el.innerText = row.value;
   });
+
+  // ✅ FIX: Sync-Zeit auch bei Refresh setzen
+  lastSync = Date.now();
 }
 
 /* =========================
-   REFRESH (5s LOCK)
+   REFRESH BUTTON
 ========================= */
 const refreshBtn = document.getElementById("refreshBtn");
 
