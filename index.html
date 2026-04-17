@@ -35,11 +35,6 @@ body {
   cursor: pointer;
 }
 
-#refreshBtn:disabled {
-  opacity: 0.4;
-  cursor: not-allowed;
-}
-
 /* STATUS */
 #dot {
   width: 10px;
@@ -88,10 +83,12 @@ button {
 
 <body>
 
+<!-- 🔊 SOUND -->
+<audio id="sound" src="click.mp3" preload="auto"></audio>
+
 <!-- TOP BAR -->
 <div id="topbar">
   <button id="refreshBtn">↻ aktualisieren</button>
-
   <div id="dot"></div>
   <span id="status">connecting...</span>
   <span id="syncTime">sync: nie</span>
@@ -159,6 +156,28 @@ const supabase = createClient(
   "sb_publishable_7E3Ai7_08sGkXhwhm85USw_Ikf5taX1"
 );
 
+/* 🔊 SOUND FIX */
+const audio = document.getElementById("sound");
+let soundUnlocked = false;
+
+function unlockSound() {
+  if (soundUnlocked) return;
+
+  audio.play().then(() => {
+    audio.pause();
+    audio.currentTime = 0;
+    soundUnlocked = true;
+  }).catch(() => {});
+}
+
+function playSound() {
+  if (!soundUnlocked) return;
+  audio.currentTime = 0;
+  audio.play().catch(() => {});
+}
+
+document.addEventListener("click", unlockSound, { once: true });
+
 let lastChange = null;
 let lastSync = null;
 
@@ -167,13 +186,8 @@ function setStatus(ok) {
   const dot = document.getElementById("dot");
   const text = document.getElementById("status");
 
-  if (ok) {
-    dot.style.background = "#4CAF50";
-    text.innerText = "verbunden";
-  } else {
-    dot.style.background = "gray";
-    text.innerText = "connecting...";
-  }
+  dot.style.background = ok ? "#4CAF50" : "gray";
+  text.innerText = ok ? "verbunden" : "connecting...";
 }
 
 /* TIMES */
@@ -196,7 +210,7 @@ setInterval(updateTimes, 1000);
 /* CHANGE */
 window.change = async (id, delta) => {
   const { data, error } = await supabase
-    .from("groupecounter")   // 🔥 HIER GEÄNDERT
+    .from("groupecounter")
     .select("value")
     .eq("id", id)
     .single();
@@ -206,20 +220,20 @@ window.change = async (id, delta) => {
   const newValue = data.value + delta;
 
   const { error: updateError } = await supabase
-    .from("groupecounter")   // 🔥 HIER GEÄNDERT
+    .from("groupecounter")
     .update({
       value: newValue,
       last_changed: new Date().toISOString()
     })
     .eq("id", id);
 
-  if (updateError) console.error(updateError);
+  if (!updateError) playSound();
 };
 
-/* LOAD ALL */
+/* LOAD */
 async function loadAll() {
   const { data } = await supabase
-    .from("groupecounter")   // 🔥 HIER GEÄNDERT
+    .from("groupecounter")
     .select("*");
 
   data.forEach(row => {
@@ -228,16 +242,11 @@ async function loadAll() {
   });
 }
 
-/* REFRESH BUTTON */
+/* REFRESH */
 document.getElementById("refreshBtn").addEventListener("click", async (e) => {
-  const btn = e.target;
-
-  btn.disabled = true;
+  e.target.disabled = true;
   await loadAll();
-
-  setTimeout(() => {
-    btn.disabled = false;
-  }, 5000);
+  setTimeout(() => e.target.disabled = false, 5000);
 });
 
 /* REALTIME */
@@ -245,14 +254,11 @@ supabase
   .channel("multi")
   .on(
     "postgres_changes",
-    { event: "*", schema: "public", table: "groupecounter" }, // 🔥 HIER GEÄNDERT
+    { event: "*", schema: "public", table: "groupecounter" },
     (payload) => {
       const row = payload.new;
 
-      const el = document.querySelector(
-        `[data-id="${row.id}"] .value`
-      );
-
+      const el = document.querySelector(`[data-id="${row.id}"] .value`);
       if (el) el.innerText = row.value;
 
       lastSync = Date.now();
@@ -260,11 +266,11 @@ supabase
       if (row.last_changed) {
         lastChange = new Date(row.last_changed).getTime();
       }
+
+      playSound();
     }
   )
-  .subscribe((status) => {
-    setStatus(status === "SUBSCRIBED");
-  });
+  .subscribe(status => setStatus(status === "SUBSCRIBED"));
 
 loadAll();
 </script>
