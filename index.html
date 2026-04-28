@@ -20,7 +20,7 @@ body {
   background: #1e1e1e;
   padding: 2px;
   display: flex;
-  gap: 20px;
+  gap: 30px;
   align-items: center;
 }
 #totalSum {
@@ -30,7 +30,7 @@ body {
 }
 
 #refreshBtn {
-  padding: 10px 20px;
+  padding: 1px 10px;
   border: none;
   border-radius: 10px;
   background: #2196f3;
@@ -39,8 +39,8 @@ body {
 }
 
 #dot {
-  width: 10px;
-  height: 10px;
+  width: 30px;
+  height: 30px;
   border-radius: 50%;
   background: gray;
 }
@@ -63,7 +63,7 @@ body {
 .value { font-size: 100px; }
 
 button {
-  font-size: 50px;
+  font-size: 40px;
   padding: 5px 10px;
   border: 1;
   border-radius: 20px;
@@ -84,9 +84,10 @@ button:disabled {
 .orange { background: #FF9800; }
 .pink   { background: #ff00ff;}
 .darkblue { background: #1201fd;}
+.greenblue { background: #00ffea;color:black;}
 
 .Überschrift{
-font-size: 3vh;
+font-size: 2vh;
 }
 .flames {
   margin-top: 10px;
@@ -152,7 +153,7 @@ font-size: 3vh;
   bottom: 10px;
   right: 1px;
   width: 250px;
-  height: 200px;
+  height: 250px;
   background: rgba(0,0,0,0.6);
   backdrop-filter: blur(10px);
   border-radius: 15px;
@@ -183,7 +184,7 @@ font-size: 3vh;
 #chatInput input {
   flex: 1;
   border: none;
-  padding: 4px 6px;
+  padding: 1px 5px;
   font-size: 12px;
   height: 22px;
   background: transparent;
@@ -191,20 +192,20 @@ font-size: 3vh;
 }
 
 #chatInput button {
-  padding: 4px 8px;
-  font-size: 12px;
+  padding: 1px 8px;
+  font-size: 19px;
 }
 #colorPicker {
   display: flex;
-  gap: 20px;
-  padding: 1px 1px;
+  gap: 16px;
+  padding: 10px 30px;
   justify-content: center;
-  border-bottom: 2px solid rgba(255,255,255,0.1);
+  border-bottom: 10px solid rgba(255,255,255,0.1);
 }
 
 #colorPicker span {
   cursor: pointer;
-  font-size: 22px;
+  font-size: 25px;
   opacity: 0.5;
   transition: 0.2s;
 }
@@ -331,7 +332,7 @@ font-size: 3vh;
 
 <div class="counter purple" data-id="5">
   <div class="Überschrift">
-  <span class="Überschrift">Wald</span>
+  <span class="Überschrift">Theater</span>
   </div><div class="flames">
   
   <span class="flame plus" onclick="toggleFlame(5,1)">🔄</span>
@@ -346,7 +347,7 @@ font-size: 3vh;
 
 <div class="counter orange" data-id="6">
   <div class="Überschrift">
-  <span class="Überschrift">Markt</span>
+  <span class="Überschrift">Wald</span>
   </div>
   <div class="flames">
   <span class="flame plus" onclick="toggleFlame(6,1)">🔄</span>
@@ -358,9 +359,10 @@ font-size: 3vh;
     <button onclick="change(6,-1)">-</button>
    </div> 
   </div>
+
   <div class="counter darkblue" data-id="7">
   <div class="Überschrift">
-  <span class="Überschrift">Hof</span>
+  <span class="Überschrift">Markt</span>
   </div><div class="flames">
   
   <span class="flame plus" onclick="toggleFlame(7,1)">🔄</span>
@@ -372,8 +374,22 @@ font-size: 3vh;
     <button onclick="change(7,-1)">-</button>
   </div> 
   </div>
+  <div class="counter greenblue" data-id="8">
+  <div class="Überschrift">
+  <span class="Überschrift">Hof</span>
+  </div><div class="flames">
+  
+  <span class="flame plus" onclick="toggleFlame(8,1)">🔄</span>
+  <span class="flame" onclick="toggleFlame(8,2)">🔥</span>
+</div>
+  <div class="value">0</div>
+  <div>
+    <button onclick="change(8,1)">+</button>
+    <button onclick="change(8,-1)">-</button>
+  </div> 
+  </div>
   <div id="chat">
-
+  
   <div id="messages"></div>
 
   <div id="chatInput">
@@ -388,6 +404,7 @@ font-size: 3vh;
   <span onclick="setColor('purple')" style="color:purple">●</span>
   <span onclick="setColor('orange')" style="color:orange">●</span>
   <span onclick="setColor('#1201fd')" style="color: #1201fd">●</span>
+  <span onclick="setColor('#00ffea')" style="color: #00ffea">●</span>
 </div>
 
 <script type="module">
