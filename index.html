@@ -173,152 +173,6 @@ body {
     filter: brightness(1.35);
   }
 }
-/* ===================================
-   SUPPORT / HILFSBEREITSCHAFT
-=================================== */
-
-.counter.supporting {
-  position: relative;
-  overflow: hidden;
-
-  box-shadow:
-    inset 0 0 15px rgba(255,255,255,0.2),
-    inset 0 0 35px rgba(0,200,255,0.25),
-    inset 0 0 60px rgba(0,120,255,0.2);
-
-  animation: supportPulse 1.5s infinite alternate;
-}
-
-/* 💙 ruhige Energiewelle */
-.counter.supporting::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-
-  background:
-    radial-gradient(circle at center,
-      rgba(255,255,255,0.18) 0%,
-      rgba(0,255,255,0.12) 30%,
-      rgba(0,120,255,0.12) 55%,
-      transparent 80%);
-
-  animation: supportGlow 2s infinite alternate;
-
-  z-index: 0;
-  pointer-events: none;
-}
-
-/* Inhalt sichtbar */
-.counter.supporting > * {
-  position: relative;
-  z-index: 2;
-}
-
-/* ✨ sanftes Pulsieren */
-@keyframes supportPulse {
-
-  0% {
-    filter: brightness(1);
-  }
-
-  100% {
-    filter: brightness(1.15);
-  }
-}
-
-/* 💙 Glow */
-@keyframes supportGlow {
-
-  0% {
-    opacity: 0.4;
-  }
-
-  100% {
-    opacity: 1;
-  }
-}
-/* ===================================
-   SUPPORT RAINBOW BORDER
-=================================== */
-
-.counter.supporting {
-  position: relative;
-  overflow: hidden;
-}
-
-/* 🌈 Leuchtender Regenbogenrahmen */
-.counter.supporting::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-
-  border-radius: 400px;
-
-  padding: 300px;
-
-  background: linear-gradient(
-    90deg,
-    #ff0000,
-    #ff9900,
-    #ffee00,
-    #33ff00,
-    #00ffee,
-    #0066ff,
-    #aa00ff,
-    #ff0000
-  );
-
-  background-size: 500% 500%;
-
-  animation:
-    rainbowMove 20s linear infinite,
-    rainbowGlow 20.2s infinite alternate;
-
-  /* 🔥 nur Rahmen sichtbar */
-  -webkit-mask:
-    linear-gradient(#fff 0 0) content-box,
-    linear-gradient(#fff 0 0);
-
-  -webkit-mask-composite: xor;
-  mask-composite: exclude;
-
-  z-index: 1;
-  pointer-events: none;
-}
-
-/* Inhalt über Rahmen */
-.counter.supporting > * {
-  position: relative;
-  z-index: 2;
-}
-
-/* 🌈 Farbwechsel */
-@keyframes rainbowMove {
-
-  0% {
-    background-position: 0% 50%;
-  }
-
-  100% {
-    background-position: 100% 50%;
-  }
-}
-
-/* ✨ Leuchten */
-@keyframes rainbowGlow {
-
-  0% {
-    filter: brightness(1)
-            drop-shadow(0 0 20px rgba(255,255,255,0.4))
-            drop-shadow(0 0 20px rgba(0,255,255,0.3));
-  }
-
-  100% {
-    filter: brightness(1.5)
-            drop-shadow(0 0 20px rgba(255,255,255,0.9))
-            drop-shadow(0 0 40px rgba(0,255,255,0.7));
-  }
-}
 
 #grid {
   display: grid;
@@ -377,6 +231,39 @@ font-size: 2vh;
   /* optional Glass Effekt */
   backdrop-filter: blur(6px);
   border: 1px solid rgba(255, 255, 255, 0.64);
+}
+.flame.warning {
+    opacity: 0.25;
+    transition: .2s;
+}
+
+.flame.warning.active {
+    opacity: 1;
+    animation:
+        warningPulse 1.2s ease-in-out infinite,
+        warningBlink 1s infinite;
+    text-shadow:
+        0 0 10px yellow,
+        0 0 20px orange,
+        0 0 30px red;
+}
+
+@keyframes warningPulse {
+    0%,100% {
+        transform: scale(1);
+    }
+    50% {
+        transform: scale(1.35);
+    }
+}
+
+@keyframes warningBlink {
+    0%,100% {
+        filter: brightness(1);
+    }
+    50% {
+        filter: brightness(2);
+    }
 }
 
 /* 🔥 einzelne Flammen */
@@ -502,34 +389,37 @@ font-size: 2vh;
 /* ✨ ruhiges Pulsieren */
 @keyframes plusPulse {
   0% {
-    transform: scale(1.2);
-    text-shadow: 0 0 15px #2bc7f7;
+    transform: scale(2) rotate(20deg);
   }
-  250% {
-    transform: scale(3);
-    text-shadow: 0 0 15px #2bc7f7;
+
+  100% {
+    transform: scale(3) rotate(20deg);
   }
-  500% {
-    transform: scale(4);
-    text-shadow: 0 0 15px #2bc7f7;
-  }
-}
-.flame.plus {
-  color: #ffffff;
-  opacity: 0.3;
 }
 
-/* nur wenn aktiv */
+.flame.plus {
+  color: #ffffff;
+  opacity: 0.25;
+  transition: 0.2s;
+}
+
 .flame.plus.active {
   opacity: 1;
-  animation: plusPulse 2s ease-in-out infinite;
+  filter: brightness(1.2);
+  text-shadow:
+      0 0 10px #00f729,
+      0 0 20px #48ff00,
+      0 0 35px #00ff0d,
+      0 0 55px #6cf72b;
+  animation: plusPulse 10000s infinite alternate;
 }
 </style>
 </head>
 
 <body>
 
-<audio id="sound" src="click.mp3" preload="auto"></audio>
+<audio id="clickSound" src="click.mp3" preload="auto"></audio>
+<audio id="alarmSound" src="Alarm.mp3" preload="auto" loop></audio>
 
 <div id="topbar">
   <button id="refreshBtn">↻</button>
@@ -545,9 +435,10 @@ font-size: 2vh;
   <div class="Überschrift">
   <span class="Überschrift">Bauraum</span>
   </div> 
-  <div class="flames">
-  <span class="flame plus" onclick="toggleFlame(1,1)">🔄</span>
-  <span class="flame" onclick="toggleFlame(1,2)">🔥</span>
+<div class="flames">
+  <span class="flame plus" onclick="toggleFlame(1,1)">✅</span>
+  <span class="flame warning" onclick="toggleFlame(1,2)">⚠️</span>
+  <span class="flame" onclick="toggleFlame(1,3)">🔥</span>
 </div>
   <div class="value">0</div>
   <div>
@@ -563,8 +454,10 @@ font-size: 2vh;
   <span class="Überschrift">Atelier</span>
   </div><div class="flames">
   
-  <span class="flame plus" onclick="toggleFlame(2,1)">🔄</span>
-  <span class="flame" onclick="toggleFlame(2,2)">🔥</span>
+<span class="flame plus" onclick="toggleFlame(2,1)">✅</span>
+  <span class="flame warning" onclick="toggleFlame(2,2)">⚠️</span>
+  <span class="flame" onclick="toggleFlame(2,3)">🔥</span>
+  
 </div>
   <div class="value">0</div>
   <div>
@@ -579,8 +472,9 @@ font-size: 2vh;
   <span class="Überschrift">Strand</span>
   </div><div class="flames">
   
-  <span class="flame plus" onclick="toggleFlame(3,1)">🔄</span>
-  <span class="flame" onclick="toggleFlame(3,2)">🔥</span>
+<span class="flame plus" onclick="toggleFlame(3,1)">✅</span>
+  <span class="flame warning" onclick="toggleFlame(3,2)">⚠️</span>
+  <span class="flame" onclick="toggleFlame(3,3)">🔥</span>
 </div>
   <div class="value">0</div>
   <div>
@@ -595,8 +489,9 @@ font-size: 2vh;
   <span class="Überschrift">Labor</span>
   </div><div class="flames">
   
- <span class="flame plus" onclick="toggleFlame(4,1)">🔄</span>
-  <span class="flame" onclick="toggleFlame(4,2)">🔥</span>
+<span class="flame plus" onclick="toggleFlame(4,1)">✅</span>
+  <span class="flame warning" onclick="toggleFlame(4,2)">⚠️</span>
+  <span class="flame" onclick="toggleFlame(4,3)">🔥</span>
 </div>
   <div class="value">0</div>
   <div>
@@ -610,8 +505,9 @@ font-size: 2vh;
   <span class="Überschrift">Theater</span>
   </div><div class="flames">
   
-  <span class="flame plus" onclick="toggleFlame(5,1)">🔄</span>
-  <span class="flame" onclick="toggleFlame(5,2)">🔥</span>
+<span class="flame plus" onclick="toggleFlame(5,1)">✅</span>
+  <span class="flame warning" onclick="toggleFlame(5,2)">⚠️</span>
+  <span class="flame" onclick="toggleFlame(5,3)">🔥</span>
 </div>
   <div class="value">0</div>
   <div>
@@ -625,8 +521,9 @@ font-size: 2vh;
   <span class="Überschrift">Wald</span>
   </div>
   <div class="flames">
-  <span class="flame plus" onclick="toggleFlame(6,1)">🔄</span>
-  <span class="flame" onclick="toggleFlame(6,2)">🔥</span>
+  <span class="flame plus" onclick="toggleFlame(6,1)">✅</span>
+  <span class="flame warning" onclick="toggleFlame(6,2)">⚠️</span>
+  <span class="flame" onclick="toggleFlame(6,3)">🔥</span>
 </div>
   <div class="value">0</div>
   <div>
@@ -640,8 +537,9 @@ font-size: 2vh;
   <span class="Überschrift">Markt</span>
   </div><div class="flames">
   
-  <span class="flame plus" onclick="toggleFlame(7,1)">🔄</span>
-  <span class="flame" onclick="toggleFlame(7,2)">🔥</span>
+  <span class="flame plus" onclick="toggleFlame(7,1)">✅</span>
+  <span class="flame warning" onclick="toggleFlame(7,2)">⚠️</span>
+  <span class="flame" onclick="toggleFlame(7,3)">🔥</span>
 </div>
   <div class="value">0</div>
   <div>
@@ -654,8 +552,9 @@ font-size: 2vh;
   <span class="Überschrift">Hof</span>
   </div><div class="flames">
   
-  <span class="flame plus" onclick="toggleFlame(8,1)">🔄</span>
-  <span class="flame" onclick="toggleFlame(8,2)">🔥</span>
+  <span class="flame plus" onclick="toggleFlame(8,1)">✅</span>
+  <span class="flame warning" onclick="toggleFlame(8,2)">⚠️</span>
+  <span class="flame" onclick="toggleFlame(8,3)">🔥</span>
 </div>
   <div class="value">0</div>
   <div>
@@ -694,22 +593,29 @@ const supabase = createClient(
    SOUND
 ========================= */
 const audio = document.getElementById("sound");
+const clickAudio = document.getElementById("clickSound");
+const alarmAudio = document.getElementById("alarmSound");
 
 let soundUnlocked = false;
 let lastEventTime = 0;
 let soundTimer = null;
+document.addEventListener("click", async () => {
 
-document.addEventListener("click", () => {
-  if (soundUnlocked) return;
+    if (soundUnlocked) return;
 
-  audio.play()
-    .then(() => {
-      audio.pause();
-      audio.currentTime = 0;
-      soundUnlocked = true;
-    })
-    .catch(() => {});
-}, { once: true });
+    try {
+        await clickAudio.play();
+        clickAudio.pause();
+        clickAudio.currentTime = 0;
+
+        await alarmAudio.play();
+        alarmAudio.pause();
+        alarmAudio.currentTime = 0;
+
+        soundUnlocked = true;
+    } catch(e) {}
+
+}, { once:true });
 
 function triggerSound() {
   if (!soundUnlocked) return;
@@ -719,11 +625,40 @@ function triggerSound() {
 
   soundTimer = setTimeout(() => {
     if (Date.now() - lastEventTime >= 2000) {
-      audio.currentTime = 0;
-      audio.play().catch(() => {});
+      clickAudio.currentTime = 0;
+      clickAudio.play().catch(() => {});
     }
   }, 2000);
 }
+
+
+/* =========================
+   ALARM
+========================= */
+let alarmPlaying = false;
+
+async function updateAlarmSound() {
+  const { data } = await supabase
+    .from("groupecounter")
+    .select("flame3");
+
+  const alarmActive = data?.some(row => row.flame3);
+
+  if (!soundUnlocked) return;
+
+  if (alarmActive && !alarmPlaying) {
+    alarmPlaying = true;
+    alarmAudio.currentTime = 0;
+    alarmAudio.play().catch(err => console.log("ALARM ERROR:", err));
+  }
+
+  if (!alarmActive && alarmPlaying) {
+    alarmPlaying = false;
+    alarmAudio.pause();
+    alarmAudio.currentTime = 0;
+  }
+}
+
 
 /* =========================
    STATUS
@@ -783,66 +718,32 @@ window.change = async (id, delta) => {
    LOAD
 ========================= */
 async function loadAll() {
-  
+
   const { data } = await supabase
     .from("groupecounter")
     .select("*");
 
-data.forEach(row => {
-  const counter = document.querySelector(`[data-id="${row.id}"]`);
-  if (!counter) return;
-
-  const valueEl = counter.querySelector(".value");
-  if (valueEl) valueEl.innerText = row.value;
-
-  const flames = counter.querySelectorAll(".flame");
-
-  if (flames[0]) {
-  if (row.flame1) {
-    flames[0].style.opacity = "1";
-  } else {
-    flames[0].style.opacity = "0.3";
-  }
-}
-  if (flames[1]) flames[1].classList.toggle("active", row.flame2);
-      counter.classList.toggle("burning", row.flame2);
-      counter.classList.toggle("supporting", row.flame1);
-});
-
-
-  // ✅ FIX: Sync-Zeit auch bei Refresh setzen
-  lastSync = Date.now();
-}
-async function updateTotalSum() {
-  const { data } = await supabase
-    .from("groupecounter")
-    .select("value");
-
-  let sum = 0;
-
   data.forEach(row => {
-    sum += row.value || 0;
+    const counter = document.querySelector(`[data-id="${row.id}"]`);
+    if (!counter) return;
+
+    counter.querySelector(".value").innerText = row.value;
+
+    const flames = counter.querySelectorAll(".flame");
+
+flames[0].classList.toggle("active", row.flame1);
+flames[1].classList.toggle("active", row.flame2);
+flames[2].classList.toggle("active", row.flame3);
+
+counter.classList.toggle("burning", row.flame3);
+counter.classList.toggle("supporting", row.flame1);
   });
 
-  document.getElementById("totalSum").innerText = "Gesamt: " + sum;
+  await updateTotalSum();
+  lastSync = Date.now();
+  await updateAlarmSound();
 }
-updateTotalSum();
-window.toggleFlame = async (id, flameNumber) => {
-  const column = flameNumber === 1 ? "flame1" : "flame2";
-
-  const { data } = await supabase
-    .from("groupecounter")
-    .select(column)
-    .eq("id", id)
-    .single();
-
-  const newValue = !data[column];
-
-  await supabase
-    .from("groupecounter")
-    .update({ [column]: newValue })
-    .eq("id", id);
-};
+loadAll();
 
 /* =========================
    REFRESH BUTTON
@@ -862,7 +763,8 @@ refreshBtn.addEventListener("click", async () => {
    FLAMES
 ========================= */
 window.toggleFlame = async (id, flameNumber) => {
-  const column = flameNumber === 1 ? "flame1" : "flame2";
+
+  const column = `flame${flameNumber}`;
 
   const { data } = await supabase
     .from("groupecounter")
@@ -895,15 +797,18 @@ supabase
 if (counter) {
   const flames = counter.querySelectorAll(".flame");
 
-  flames[0].classList.toggle("active", row.flame1);
-  flames[1].classList.toggle("active", row.flame2);
-  counter.classList.toggle("burning", row.flame2);
-  counter.classList.toggle("supporting", row.flame1);
+flames[0].classList.toggle("active", row.flame1);
+flames[1].classList.toggle("active", row.flame2);
+flames[2].classList.toggle("active", row.flame3);
+
+counter.classList.toggle("burning", row.flame3);
+counter.classList.toggle("supporting", row.flame1);
 }
 
       lastSync = Date.now();
       triggerSound();
       updateTotalSum();
+      updateAlarmSound();
     }
   )
   .subscribe(status => setStatus(status === "SUBSCRIBED"));
