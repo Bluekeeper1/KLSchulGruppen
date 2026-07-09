@@ -595,6 +595,11 @@ const supabase = createClient(
 const audio = document.getElementById("sound");
 const clickAudio = document.getElementById("clickSound");
 const alarmAudio = document.getElementById("alarmSound");
+const flame1Audio = new Audio("flame1.mp3");
+const flame2Audio = new Audio("flame2.mp3");
+
+let lastFlame1 = false;
+let lastFlame2 = false;
 
 let soundUnlocked = false;
 let lastEventTime = 0;
@@ -613,11 +618,14 @@ document.addEventListener("click", async () => {
         alarmAudio.currentTime = 0;
 
         soundUnlocked = true;
+        await updateAlarmSound();
     } catch(e) {}
 
 }, { once:true });
 
 function triggerSound() {
+  console.trace("triggerSound");
+
   if (!soundUnlocked) return;
 
   lastEventTime = Date.now();
@@ -711,9 +719,20 @@ window.change = async (id, delta) => {
     .update({ value: newValue })
     .eq("id", id);
 
-  if (!error) triggerSound();
 };
+/* =========================
+   GESAMTSUMME
+========================= */
+async function updateTotalSum() {
 
+  let sum = 0;
+
+  document.querySelectorAll(".counter .value").forEach(el => {
+    sum += Number(el.innerText) || 0;
+  });
+
+  document.getElementById("totalSum").innerText = `Gesamt: ${sum}`;
+}
 /* =========================
    LOAD
 ========================= */
@@ -739,9 +758,10 @@ counter.classList.toggle("burning", row.flame3);
 counter.classList.toggle("supporting", row.flame1);
   });
 
-  await updateTotalSum();
-  lastSync = Date.now();
-  await updateAlarmSound();
+ await updateTotalSum();
+lastSync = Date.now();
+await updateAlarmSound();
+await updateWarningSounds();
 }
 loadAll();
 
@@ -787,11 +807,22 @@ supabase
   .on(
     "postgres_changes",
     { event: "*", schema: "public", table: "groupecounter" },
+    
     (payload) => {
       const row = payload.new;
 
-      const el = document.querySelector(`[data-id="${row.id}"] .value`);
-      if (el) el.innerText = row.value;
+ const el = document.querySelector(`[data-id="${row.id}"] .value`);
+
+if (el) {
+
+  // Nur Ton, wenn sich der angezeigte Wert wirklich ändert
+  if (Number(el.innerText) !== row.value) {
+    triggerSound();
+  }
+
+  el.innerText = row.value;
+}
+
       const counter = document.querySelector(`[data-id="${row.id}"]`);
 
 if (counter) {
@@ -806,9 +837,10 @@ counter.classList.toggle("supporting", row.flame1);
 }
 
       lastSync = Date.now();
-      triggerSound();
-      updateTotalSum();
-      updateAlarmSound();
+
+updateTotalSum();
+updateAlarmSound();
+updateWarningSounds();
     }
   )
   .subscribe(status => setStatus(status === "SUBSCRIBED"));
